@@ -1,0 +1,41 @@
+# dependencies
+**/node_modules/
+
+# build output
+**/dist/
+**/build/
+**/coverage/
+**/dist-ssr/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# env files
+**/.env
+**/.env.*
+
+# OS and editor files
+.DS_Store
+**/.idea/
+**/.vscode/*
+!**/.vscode/settings.json
+!**/.vscode/tasks.json
+!**/.vscode/launch.json
+!**/.vscode/extensions.json
+
+# test/runtime artifacts
+**/.nyc_output/
+**/.temp/
+**/.tmp/
+**/pids/
+**/*.pid
+**/*.pid.lock
+**/*.seed
+
+# Node/Vite reports
+report.*.json
