@@ -1,16 +1,24 @@
 import React from 'react';
-import { Bot } from 'lucide-react';
 
 export const TypingIndicator: React.FC = () => {
   return (
-    <div className="flex items-end gap-3 max-w-[80%] animate-[slideUpFade_0.4s_cubic-bezier(0.16,1,0.3,1)_forwards] self-start">
-      <div className="w-8 h-8 rounded-full flex justify-center items-center shrink-0 bg-zinc-900 border border-white/10 text-sky-400 shadow-md">
-        <Bot size={15} strokeWidth={2} />
+    <div className="flex items-start gap-4 animate-slide-up">
+      <div className="shrink-0 mt-1">
+        <div className="w-8 h-8 rounded-full bg-[#181715] text-[#cc785c] flex items-center justify-center shadow-xs border border-[#252320]">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" />
+          </svg>
+        </div>
       </div>
-      <div className="flex items-center gap-1.5 px-4 py-3.5 bg-zinc-900/60 border border-white/5 rounded-2xl rounded-bl-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.03)]">
-        <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-[typingBounce_1.4s_infinite_ease-in-out_both] [animation-delay:-0.32s]"></div>
-        <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-[typingBounce_1.4s_infinite_ease-in-out_both] [animation-delay:-0.16s]"></div>
-        <div className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-[typingBounce_1.4s_infinite_ease-in-out_both]"></div>
+      <div className="flex flex-col gap-1.5 min-w-0">
+        <div className="flex items-center gap-2 px-1 text-[11px] text-[#6c6a64]">
+          <span className="font-serif-display text-xs text-[#141413] font-semibold">Claude</span>
+        </div>
+        <div className="px-5 py-4 rounded-2xl bg-[#efe9de] border border-[#e6dfd8] rounded-tl-xs shadow-xs flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#cc785c] animate-[pulseCoral_1.4s_ease-in-out_infinite]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#cc785c] animate-[pulseCoral_1.4s_ease-in-out_0.2s_infinite]" />
+          <div className="w-1.5 h-1.5 rounded-full bg-[#cc785c] animate-[pulseCoral_1.4s_ease-in-out_0.4s_infinite]" />
+        </div>
       </div>
     </div>
   );

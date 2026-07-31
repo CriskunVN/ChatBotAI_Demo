@@ -4,7 +4,13 @@ import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  const frontendOrigin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173';
+
+  app.enableCors({
+    origin: frontendOrigin === '*' ? '*' : frontendOrigin,
+    credentials: true,
+  });
+
   const port = Number(process.env.PORT ?? 3000);
 
   await app.listen(port);

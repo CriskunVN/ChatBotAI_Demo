@@ -1,12 +1,15 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useChatStore } from './store/useChatStore';
+import { Sidebar } from './components/Sidebar';
 import { ChatHeader } from './components/ChatHeader';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { ChatMessage } from './components/ChatMessage';
 import { TypingIndicator } from './components/TypingIndicator';
 import { ChatInput } from './components/ChatInput';
 
 function App() {
-  const { messages, isTyping, sendMessage } = useChatStore();
+  const { messages, phase, sendMessage } = useChatStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -15,31 +18,41 @@ function App() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [messages, phase]);
+
+  const showSuggestions = messages.length <= 1;
 
   return (
-    // Outer Shell (Frosted Glass Bezel - Apple-esque / Linear-tier style)
-    <div className="w-full max-w-[850px] h-[100dvh] md:h-[82vh] bg-white/[0.03] backdrop-blur-2xl p-0 md:p-2.5 md:rounded-[2.5rem] md:border md:border-white/10 md:ring-1 md:ring-white/10 md:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] flex flex-col relative z-10 animate-[popIn_0.6s_cubic-bezier(0.16,1,0.3,1)]">
-      
-      {/* Inner Core (Concentric Glass layers) */}
-      <div className="flex-1 bg-zinc-950/70 backdrop-blur-3xl md:rounded-[calc(2.5rem-0.625rem)] border-0 md:border md:border-white/5 flex flex-col overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-        {/* Header */}
-        <ChatHeader />
+    <div className="w-full h-screen bg-[#faf9f5] flex flex-row overflow-hidden relative z-10 font-sans-body">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 md:px-8 md:py-8 flex flex-col gap-6 scroll-smooth">
-          {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
-          ))}
-          
-          {isTyping && <TypingIndicator />}
-          
-          <div ref={messagesEndRef} />
+      <main className="flex-1 bg-[#faf9f5] flex flex-col h-full min-w-0 overflow-hidden relative">
+        <ChatHeader
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isSidebarOpen={isSidebarOpen}
+        />
+
+        <div className="flex-1 overflow-y-auto px-8 py-12 md:px-16 flex flex-col scroll-smooth">
+          <div className="w-full max-w-4xl lg:max-w-5xl mx-auto flex flex-col gap-10 md:gap-12">
+            {messages.map((msg) => (
+              <ChatMessage key={msg.id} message={msg} />
+            ))}
+
+            {showSuggestions && (
+              <WelcomeScreen onSelectPrompt={sendMessage} />
+            )}
+
+            {phase === 'thinking' && <TypingIndicator />}
+
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
-        {/* Input Area */}
-        <ChatInput onSendMessage={sendMessage} />
-      </div>
+        <ChatInput onSendMessage={sendMessage} isBusy={phase !== 'idle'} />
+      </main>
     </div>
   );
 }

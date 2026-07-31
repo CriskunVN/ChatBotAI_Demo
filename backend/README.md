@@ -25,6 +25,15 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Environment
+
+Copy [`.env.example`](.env.example) to `.env` and choose one provider:
+
+- `AI_PROVIDER=gemini` with `GEMINI_API_KEY`
+- `AI_PROVIDER=ollama` with `OLLAMA_BASE_URL` and `OLLAMA_MODEL`
+
+If you keep both configured, the app can still fall back to local replies when the external model is unavailable.
+
 ## Project setup
 
 ```bash

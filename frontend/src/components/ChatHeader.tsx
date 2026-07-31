@@ -1,36 +1,42 @@
 import React from 'react';
-import { Sparkles, Trash2 } from 'lucide-react';
-import { useChatStore } from '../store/useChatStore';
+import { Menu, Share, MoreHorizontal } from 'lucide-react';
 
-export const ChatHeader: React.FC = () => {
-  const clearChat = useChatStore((state) => state.clearChat);
+interface ChatHeaderProps {
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}
 
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ onToggleSidebar, isSidebarOpen }) => {
   return (
-    <div className="flex justify-between items-center px-6 md:px-8 py-5 bg-zinc-900/40 border-b border-white/5 backdrop-blur-md select-none">
+    <header className="h-20 px-6 md:px-12 py-4 bg-[#faf9f5] border-b border-[#e6dfd8] flex items-center justify-between shrink-0 relative z-20">
       <div className="flex items-center gap-4">
-        {/* Glowing breathing Avatar */}
-        <div className="flex justify-center items-center w-11 h-11 rounded-full relative bg-gradient-to-br from-sky-500 to-sky-600 shadow-[0_0_20px_rgba(14,165,233,0.15)] before:absolute before:inset-0 before:rounded-full before:bg-sky-400/20 before:animate-ping before:duration-1000">
-          <Sparkles size={18} className="text-white" />
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold text-zinc-100 tracking-tight">Trợ lý AI Thông Minh</h1>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-            <span className="text-xs text-zinc-400 font-medium">Đang hoạt động</span>
-          </div>
+        {!isSidebarOpen && (
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-md text-[#6c6a64] hover:text-[#141413] hover:bg-[#efe9de] transition-colors cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+        <div className="flex flex-col">
+          <span className="font-serif-display text-lg text-[#141413] font-semibold tracking-tight">
+            Trợ lý AI Claude
+          </span>
+          <span className="text-[10px] font-mono text-[#5db8a6] font-semibold -mt-1">
+            Claude 3.5 Sonnet
+          </span>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2">
-        {/* Reset Chat Button */}
-        <button 
-          onClick={clearChat}
-          className="bg-transparent border-none text-zinc-400 cursor-pointer p-2 rounded-full transition-all duration-300 flex items-center justify-center hover:bg-white/5 hover:text-red-400 active:scale-95"
-          title="Xoá lịch sử chat"
-        >
-          <Trash2 size={18} />
+        <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-[#6c6a64] hover:text-[#141413] hover:bg-[#efe9de] transition-colors cursor-pointer border border-transparent hover:border-[#e6dfd8]">
+          <Share className="w-3.5 h-3.5" />
+          <span>Chia sẻ</span>
+        </button>
+        <button className="p-2 rounded-md text-[#6c6a64] hover:text-[#141413] hover:bg-[#efe9de] transition-colors cursor-pointer">
+          <MoreHorizontal className="w-5 h-5" />
         </button>
       </div>
-    </div>
+    </header>
   );
 };

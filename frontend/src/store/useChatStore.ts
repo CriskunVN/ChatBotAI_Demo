@@ -1,73 +1,106 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Message } from '../types/chat';
+import type { Message, ChatPhase } from '../types/chat';
 
 interface ChatState {
+  sessionId: string;
   messages: Message[];
-  isTyping: boolean;
-  sendMessage: (text: string) => void;
-  setTyping: (typing: boolean) => void;
+  phase: ChatPhase;
+  sendMessage: (text: string) => Promise<void>;
   clearChat: () => void;
 }
 
-export const useChatStore = create<ChatState>()(
-  persist(
-    (set) => ({
-      messages: [
-        {
-          id: '1',
-          text: 'Xin chào! Mình là trợ lý AI. Mình có thể giúp gì cho bạn hôm nay?',
-          sender: 'bot',
-          timestamp: new Date().toISOString(),
-        },
-      ],
-      isTyping: false,
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome',
+  text: 'Chào bạn! Tôi là một Senior Software Engineer, bạn có bất cứ điều gì muốn hỏi tôi có thể giúp. ',
+  sender: 'bot',
+  timestamp: new Date().toISOString(),
+};
 
-      sendMessage: (text: string) => {
-        const newUserMessage: Message = {
-          id: Date.now().toString(),
-          text,
-          sender: 'user',
-          timestamp: new Date().toISOString(),
-        };
+export const useChatStore = create<ChatState>((set, get) => ({
+  sessionId: crypto.randomUUID(),
+  messages: [WELCOME_MESSAGE],
+  phase: 'idle',
 
-        set((state) => ({
-          messages: [...state.messages, newUserMessage],
-          isTyping: true,
-        }));
+  clearChat: () => set({ messages: [WELCOME_MESSAGE], phase: 'idle', sessionId: crypto.randomUUID() }),
 
-        // Simulate AI response
-        setTimeout(() => {
-          const botResponse: Message = {
-            id: (Date.now() + 1).toString(),
-            text: 'Cảm ơn bạn đã gửi tin nhắn. Đây là một phản hồi tự động từ Zustand Store. Trạng thái tin nhắn đã được lưu trữ vào LocalStorage nên bạn tải lại trang tin nhắn vẫn được giữ nguyên!',
-            sender: 'bot',
-            timestamp: new Date().toISOString(),
-          };
+  sendMessage: async (text: string) => {
+    if (!text.trim() || get().phase !== 'idle') return;
 
-          set((state) => ({
-            messages: [...state.messages, botResponse],
-            isTyping: false,
-          }));
-        }, 1500);
-      },
+    const userMsg: Message = {
+      id: crypto.randomUUID(),
+      text: text.trim(),
+      sender: 'user',
+      timestamp: new Date().toISOString(),
+    };
 
-      setTyping: (typing: boolean) => set({ isTyping: typing }),
+    set((state) => ({
+      messages: [...state.messages, userMsg],
+      phase: 'thinking',
+    }));
 
-      clearChat: () => set({
+    try {
+      // Gọi API thực tế
+      const response = await fetch('http://localhost:3000/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text.trim(),
+          sessionId: get().sessionId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API Error');
+      }
+
+      const data = await response.json();
+      const responseText = data.reply || 'Xin lỗi, không có phản hồi từ máy chủ.';
+
+      set({ phase: 'streaming' });
+      
+      const botMsgId = crypto.randomUUID();
+      set((state) => ({
         messages: [
+          ...state.messages,
           {
-            id: '1',
-            text: 'Xin chào! Mình là trợ lý AI. Mình có thể giúp gì cho bạn hôm nay?',
+            id: botMsgId,
+            text: '',
             sender: 'bot',
             timestamp: new Date().toISOString(),
           },
         ],
-        isTyping: false,
-      }),
-    }),
-    {
-      name: 'chatbot-messages-storage', // key in localStorage
+      }));
+
+      // Mô phỏng hiệu ứng streaming cho câu trả lời thực tế
+      let currentText = '';
+      const words = responseText.split(' ');
+
+      for (let i = 0; i < words.length; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 30)); // 30ms mỗi từ
+        currentText += (i === 0 ? '' : ' ') + words[i];
+
+        set((state) => ({
+          messages: state.messages.map((m) =>
+            m.id === botMsgId ? { ...m, text: currentText } : m
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error('Lỗi khi gọi API chat:', error);
+      const errorMsgId = crypto.randomUUID();
+      set((state) => ({
+        messages: [
+          ...state.messages,
+          {
+            id: errorMsgId,
+            text: 'Xin lỗi, đã có lỗi xảy ra khi kết nối tới máy chủ AI (Backend). Vui lòng thử lại sau!',
+            sender: 'bot',
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      }));
+    } finally {
+      set({ phase: 'idle' });
     }
-  )
-);
+  },
+}));

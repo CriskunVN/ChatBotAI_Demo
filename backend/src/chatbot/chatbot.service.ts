@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 
 type ChatReply = {
   reply: string;
-  provider: string;
+  provider: 'gemini' | 'ollama' | 'local';
   sessionId: string;
 };
 
@@ -44,9 +44,13 @@ export class ChatbotService {
       return { reply, provider: 'ollama', sessionId: resolvedSessionId };
     } catch (error) {
       const detail = error instanceof Error ? error.message : 'Unknown error';
-      throw new InternalServerErrorException(
-        `Không thể lấy phản hồi từ AI model: ${detail}`,
-      );
+      console.error('[ChatbotService Error]:', detail, error);
+      
+      const reply = this.getLocalReply(message);
+      this.appendMessage(resolvedSessionId, 'user', message);
+      this.appendMessage(resolvedSessionId, 'assistant', reply);
+
+      return { reply: `${reply} (Lỗi hệ thống AI: ${detail})`, provider: 'local', sessionId: resolvedSessionId };
     }
   }
 
@@ -77,7 +81,7 @@ export class ChatbotService {
       .join('\n');
 
     return [
-      'Bạn là một chatbot hữu ích. Trả lời ngắn gọn, rõ ràng, bằng tiếng Việt.',
+      'Bạn là Senior Software Engineer, chuyên về lập trình và công nghệ thông tin với nhiều năm kinh nghiệm. Hãy trả lời câu hỏi của người dùng một cách chi tiết, rõ ràng và thân thiện.',
       historyText ? `Lịch sử hội thoại gần đây:\n${historyText}` : '',
       `Người dùng hỏi: ${message}`,
     ]
@@ -100,7 +104,7 @@ export class ChatbotService {
       contents: prompt,
       config: {
         systemInstruction:
-          'Bạn là một chatbot hỗ trợ người dùng. Trả lời ngắn gọn, rõ ràng, thân thiện.',
+          'Bạn là Senior Software Engineer, chuyên về lập trình và công nghệ thông tin với nhiều năm kinh nghiệm. Hãy trả lời câu hỏi của người dùng một cách chi tiết, rõ ràng và thân thiện.',
       },
     });
 
@@ -163,5 +167,27 @@ export class ChatbotService {
     }
 
     return reply;
+  }
+
+  private getLocalReply(message: string): string {
+    const normalizedMessage = message.toLowerCase();
+
+    if (/\b(xin chao|xin chào|chao|chào)\b/.test(normalizedMessage)) {
+      return 'Chào bạn. Mình có thể giúp gì cho bạn hôm nay?';
+    }
+
+    if (/\b(cam on|cảm ơn|thank you|thanks)\b/.test(normalizedMessage)) {
+      return 'Không có gì. Mình luôn sẵn sàng hỗ trợ bạn.';
+    }
+
+    if (/\b(tên|name|ban la ai|bạn là ai)\b/.test(normalizedMessage)) {
+      return 'Mình là chatbot demo cơ bản, có thể trả lời theo luồng hội thoại và lịch sử chat.';
+    }
+
+    if (/\b(giờ|time|ngày|date)\b/.test(normalizedMessage)) {
+      return `Bây giờ là ${new Date().toLocaleString('vi-VN')}.`;
+    }
+
+    return `Mình đã nhận được: “${message}”. Bạn có thể hỏi thêm chi tiết để mình hỗ trợ tiếp.`;
   }
 }
